@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+before_install:
+  - docker build -t rngfox/react-test -f ./client/Dockerfile.dev ./client
+
+# test section, any exitcodes other than 0 will make all tests fail
+script:
+  - docker run -e CI=true rngfox/react-test npm test
+
+after_success:
+  - docker build -t rngfox/complex-app-client ./client
+  - docker build -t rngfox/complex-app-nginx ./nginx
+  - docker build -t rngfox/complex-app-server ./server
+  - docker build -t rngfox/complex-app-worker ./worker
+  - docker login -u $DOCKER_ID -p $DOCKER_PASSWORD
+  - docker push rngfox/complex-app-client
+  - docker push rngfox/complex-app-nginx 
+  - docker push rngfox/complex-app-server
+  - docker push rngfox/complex-app-worker
